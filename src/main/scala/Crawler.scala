@@ -21,14 +21,13 @@ case class Crawler(maxDepth: Int) {
 
   def crawlPage(httpClient: Client[IO], pageUri: Uri, depth: Int = 0): IO[WebPage] = {
     // TODO follow redirects
-    // TODO handle failed requests
     for {
       page <- httpClient.expect[String](pageUri).map(WebPage.fromHtml)
       _ <- IO.println("  ".repeat(depth) + "- " + page.title.getOrElse("(no title)"))
       links = crawlableLinks(page)
       _ <- {
         if (depth < maxDepth)
-          links.parTraverse { uri => crawlPage(httpClient, uri, depth + 1) }
+          links.parTraverse { uri => crawlPage(httpClient, uri, depth + 1).attempt }
         else
           IO.unit
       }
