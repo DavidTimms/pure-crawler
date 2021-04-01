@@ -23,7 +23,8 @@ case class Crawler(maxDepth: Int) {
 
   def crawlPage(httpClient: Client[IO], pageUri: Uri, depth: Int = 0): IO[WebPage] = {
     for {
-      page <- httpClient.expect[String](pageUri).map(WebPage.fromHtml)
+      html <- httpClient.expect[String](pageUri)
+      page = WebPage.fromHtml(pageUri, html)
       _ <- IO.println("  ".repeat(depth) + "- " + page.title.getOrElse("(no title)"))
       links = crawlableLinks(page)
       _ <- {
@@ -40,7 +41,7 @@ case class Crawler(maxDepth: Int) {
     webPage
       .links
       .map(Uri.fromString)
-      .flatMap(_.toSeq)
+      .flatMap(_.toSeq) // Skip any links which failed to parse
       // TODO convert relative links to absolute
       .filter(uri => uri.scheme.isDefined)
 }

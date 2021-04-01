@@ -1,8 +1,10 @@
-case class WebPage(title: Option[String], links: List[String])
+import org.http4s.Uri
+
+case class WebPage(uri: Uri, title: Option[String], links: List[String])
 
 object WebPage {
-  def fromHtml(html: String): WebPage =
-    WebPage(extractTitle(html), extractLinks(html))
+  def fromHtml(uri: Uri, html: String): WebPage =
+    WebPage(uri, extractTitle(html), extractLinks(html))
 
   private val TitleRegex = """<\s*title[^>]*>(.*)<\/\s*title\s*>""".r
 
