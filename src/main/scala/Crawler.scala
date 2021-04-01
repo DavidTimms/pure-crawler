@@ -3,6 +3,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.client.Client
 import org.http4s.client.blaze._
+import org.http4s.client.middleware.FollowRedirect
 
 import scala.concurrent.ExecutionContext.global
 
@@ -14,13 +15,13 @@ case class Crawler(maxDepth: Int) {
         case Right(uri) => IO.pure(uri)
       }
       page <- BlazeClientBuilder[IO](global).resource.use { httpClient =>
-        crawlPage(httpClient, parsedUri)
+        val httpClientWithRedirects = FollowRedirect(maxRedirects = 5)(httpClient)
+        crawlPage(httpClientWithRedirects, parsedUri)
       }
     } yield page
   }
 
   def crawlPage(httpClient: Client[IO], pageUri: Uri, depth: Int = 0): IO[WebPage] = {
-    // TODO follow redirects
     for {
       page <- httpClient.expect[String](pageUri).map(WebPage.fromHtml)
       _ <- IO.println("  ".repeat(depth) + "- " + page.title.getOrElse("(no title)"))
