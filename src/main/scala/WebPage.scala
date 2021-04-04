@@ -6,7 +6,7 @@ object WebPage {
   def fromHtml(uri: Uri, html: String): WebPage =
     WebPage(uri, extractTitle(html), extractLinks(html))
 
-  private val TitleRegex = """<\s*title[^>]*>(.*)<\/\s*title\s*>""".r
+  private val TitleRegex = """<\s*title[^>]*>(.*?)<\/\s*title\s*>""".r
 
   private def extractTitle(html: String): Option[String] =
     TitleRegex.findFirstMatchIn(html).map(_.group(1))
