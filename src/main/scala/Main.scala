@@ -13,8 +13,16 @@ object Main extends IOApp {
     args.headOption match {
       case Some(startingUri) => {
         val params = parseParams(args.tail)
-        Crawler(maxDepth = params.maxDepth).crawl(startingUri)
-          .as(ExitCode.Success)
+        for {
+          pageCounter <- Ref.of[IO, Int](0)
+          _ <- Crawler(
+          maxDepth = params.maxDepth,
+          pageCounter = pageCounter
+          ).crawl(startingUri)
+
+          totalPagesCrawled <- pageCounter.get
+          _ <- IO.println(s"\nSuccessfully crawled $totalPagesCrawled pages.\n")
+        } yield ExitCode.Success
       }
       case None =>
         IO(Console.err.println("ERROR: No starting URI provided"))

@@ -8,7 +8,7 @@ import org.http4s.client.middleware.FollowRedirect
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
-case class Crawler(maxDepth: Int) {
+case class Crawler(maxDepth: Int, pageCounter: Ref[IO, Int]) {
   def crawl(startingUri: String): IO[WebPage] = {
     for {
       parsedUri <- Uri.fromString(startingUri) match {
@@ -33,6 +33,7 @@ case class Crawler(maxDepth: Int) {
       // _ <- IO.println(s"requesting: $pageUri")
       html <- httpClient.expect[String](pageUri)
       // _ <- IO.println(s"received: $pageUri")
+      _ <- pageCounter.update(_ + 1)
       page = WebPage.fromHtml(pageUri, html)
       _ <- IO.println("  ".repeat(depth) + "- " + page.title.getOrElse("(no title)"))
       links = crawlableLinks(page)
