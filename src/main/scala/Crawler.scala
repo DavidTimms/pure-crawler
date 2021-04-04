@@ -33,7 +33,6 @@ case class Crawler(maxDepth: Int) {
         else
           IO.unit
       }
-
     } yield page
   }
 
@@ -41,7 +40,9 @@ case class Crawler(maxDepth: Int) {
     webPage
       .links
       .map(Uri.fromString)
-      .flatMap(_.toSeq) // Skip any links which failed to parse
-      // TODO convert relative links to absolute
-      .filter(uri => uri.scheme.isDefined)
+      // Skip any links which failed to parse:
+      .flatMap(_.toSeq)
+      // Skip any links which failed to parse:
+      .map(Uri.resolve(webPage.uri, _))
+
 }
